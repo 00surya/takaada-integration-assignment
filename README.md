@@ -1,13 +1,12 @@
-# Takaada Integration Engineer Take-Home Assignment
+# Takaada Assignment
 
 ## Overview
 
 This project simulates a simplified financial integration service similar to the systems built at Takaada.
 
-The service integrates with a simulated external accounting API, stores financial data locally, and exposes APIs that provide insights about customer receivables and overdue invoices.
+The service integrates with a **simulated external accounting API**, stores financial data locally, and exposes APIs that provide insights about customer receivables and overdue invoices.
 
 The goal of this exercise is to demonstrate:
-
 - External system integration
 - Financial data modelling
 - API design
@@ -16,39 +15,75 @@ The goal of this exercise is to demonstrate:
 
 ---
 
-# Tech Stack
+## Tech Stack
 
 - Python 3.10+
 - Flask
 - SQLAlchemy
 - SQLite
+- requests
+---
+
+## Quick Start
+
+Run the mock API and main application in separate terminals.
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Terminal 1 (Mock External API)
+
+```bash
+python mock_external_api.py
+```
+
+Terminal 2 (Main Application)
+
+```bash
+python run.py
+```
+
+Then open:
+
+```
+http://127.0.0.1:5000/sync
+```
 
 ---
 
-# Project Structure
 
+## Project Structure
 ```
-app
- ├── controllers
- │   └── insights_controller.py
- │
- ├── services
- │   ├── sync_service.py
- │   └── insight_service.py
- │
- ├── models
- │   ├── customer.py
- │   ├── invoice.py
- │   └── payment.py
- │
- ├── integrations
- │   └── accounting_client.py
- │
- ├── database.py
- └── __init__.py
-
+app/
+├── controllers/
+│   └── insights_controller.py
+├── services/
+│   ├── sync_service.py
+│   └── insight_service.py
+├── models/
+│   ├── customer.py
+│   ├── invoice.py
+│   └── payment.py
+├── integrations/
+│   └── accounting_client.py
+├── database.py
+└── __init__.py
 run.py
+mock_external_api.py
+docs/
+└── er-diagram.png
 ```
+---
+
+## Database Diagram
+
+The diagram below shows the relationships between **Customers**, **Invoices**, and **Payments** in the local database.  
+It helps visualize the data model and how different entities are connected.
+
+![ER Diagram](docs/er-diagram.png)
 
 ## Components
 
@@ -64,40 +99,38 @@ run.py
 - Financial insight calculations
 
 **Controllers**
-
 - Expose REST API endpoints
 
 **Integrations**
-
 - Simulated external accounting API
 
 ---
 
-# Data Model
+## Data Model
 
-## Customer
+### Customer
 
 | Field | Type |
-|------|------|
+| :--- | :--- |
 | id | string |
 | name | string |
 | email | string |
 | created_at | datetime |
 
-## Invoice
+### Invoice
 
 | Field | Type |
-|------|------|
+| :--- | :--- |
 | id | string |
 | customer_id | foreign key |
 | amount | float |
 | due_date | date |
 | created_at | datetime |
 
-## Payment
+### Payment
 
 | Field | Type |
-|------|------|
+| :--- | :--- |
 | id | string |
 | invoice_id | foreign key |
 | amount | float |
@@ -106,111 +139,140 @@ run.py
 
 ---
 
-# System Flow
+## System Flow
 
-1. The system fetches data from a simulated external accounting API.
-2. Customer, invoice, and payment data are stored locally.
+1. The system fetches data from a simulated **external accounting API** (mock server).  
+2. Customer, invoice, and payment data are stored locally in SQLite.  
 3. APIs expose financial insights such as:
    - Outstanding balance per customer
    - Overdue invoices
 
+
+The architecture follows a controller → service → integration → database flow
+
+### Flow Diagram
+```
++---------------------+          +-------------------+          +-------------------+
+| Mock External API   |  --->    | Local SQLite DB   |  --->    | Flask API Server  |
+| (customers, invoices|          | Customers, Invoices|          | /sync, /balance,  |
+| payments endpoints) |          | Payments tables   |          | /overdue endpoints|
++---------------------+          +-------------------+          +-------------------+
+```
 ---
 
-# Setup Instructions
+## Mock External API
 
-## 1. Clone the repository
+The project includes a mock external accounting API to simulate real-world integration.
 
+### Running the mock server
 ```bash
-git clone <your_repo_url>
-cd takaada-assignment
+python mock_external_api.py
+```
+Server runs at:
+```
+http://127.0.0.1:5001
 ```
 
-## 2. Create a virtual environment
+### Endpoints:
+- `/customers` → returns list of customers
+- `/invoices` → returns list of invoices
+- `/payments` → returns list of payments
 
+**Example response from `/customers`:**
+```json
+[
+  {"id": "1", "name": "Acme Corp", "email": "finance@acme.com"},
+  {"id": "2", "name": "Beta Industries", "email": "accounts@beta.com"}
+]
+```
+
+The main app `/sync` endpoint pulls data from this mock server and stores it in the local database.
+
+---
+
+## Setup Instructions
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/00surya/takaada-integration-assignment.git
+cd takaada-assignment
+```
+### 2. Create a virtual environment
 ```bash
 python -m venv venv
 ```
 
-Activate it.
+Activate it:
 
-### Mac / Linux
-
+**Mac / Linux:**
 ```bash
 source venv/bin/activate
 ```
-
-### Windows
-
+**Windows:**
 ```bash
 venv\Scripts\activate
 ```
 
----
-
-## 3. Install dependencies
-
+### 3. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### 4. Start the mock external API
 
-## 4. Run the server
+```bash
+python mock_external_api.py
+```
 
+Runs at:
+```
+http://127.0.0.1:5001
+```
+
+### 5. Run the main app
 ```bash
 python run.py
 ```
 
 Server starts at:
-
 ```
 http://127.0.0.1:5000
 ```
-
 ---
 
-# API Endpoints
+## API Endpoints
 
-## Sync External Data
-
+### 1. Sync External Data
 Fetches customers, invoices, and payments from the simulated external API and stores them locally.
 
-```
+```http
 GET /sync
 ```
 
-Example:
-
+**Example:**
 ```
 http://127.0.0.1:5000/sync
 ```
 
-Response
-
+**Response:**
 ```json
 {
   "message": "Data synced"
 }
 ```
 
----
-
-## Customer Outstanding Balance
-
+### 2. Customer Outstanding Balance
 Returns the total invoiced amount, total payments, and outstanding balance for a customer.
 
-```
+```http
 GET /customers/<customer_id>/balance
 ```
-
-Example:
-
+**Example:**
 ```
 http://127.0.0.1:5000/customers/1/balance
 ```
 
-Example response
-
+**Example response:**
 ```json
 {
   "customer_id": 1,
@@ -219,27 +281,19 @@ Example response
   "outstanding_balance": 15000
 }
 ```
+### 3. Overdue Invoices
+Returns invoices that are past their due date and still unpaid. Supports pagination.
 
----
-
-## Overdue Invoices
-
-Returns invoices that are past their due date and still unpaid.
-
-Supports pagination.
-
-```
+```http
 GET /invoices/overdue?page=1&limit=20
 ```
 
-Example:
-
+**Example:**
 ```
 http://127.0.0.1:5000/invoices/overdue?page=1&limit=10
 ```
 
-Example response
-
+**Example response:**
 ```json
 [
   {
@@ -249,54 +303,43 @@ Example response
     "due_date": "2026-03-01"
   }
 ]
+
 ```
+
 
 ---
 
-# Key Design Decisions
+## Key Design Decisions
 
-### Service Layer
+**Service Layer**
+Business logic is separated from controllers using a service layer. This keeps route handlers lightweight and improves maintainability.
 
-Business logic is separated from controllers using a service layer.  
-This keeps route handlers lightweight and improves maintainability.
-
-### Local Data Storage
-
+**Local Data Storage**
 External API data is stored locally to:
-
 - avoid repeated API calls
 - enable faster queries
 - support financial insight calculations
 
-### Idempotent Sync
+**Idempotent Sync**
+The sync process checks whether records already exist before inserting them. This ensures repeated sync calls do not create duplicate records.
 
-The sync process checks whether records already exist before inserting them.  
-This ensures repeated sync calls do not create duplicate records.
-
-### Pagination
-
+**Pagination**
 Pagination was added to the overdue invoices endpoint to avoid loading large datasets into memory.
 
 ---
 
-# Assumptions
+## Assumptions
 
 - External APIs provide stable IDs for customers, invoices, and payments.
 - Invoices may have partial payments.
 - An invoice is considered overdue when:
-
-```
-due_date < current_date
-AND
-total_payments < invoice_amount
-```
+  `due_date < current_date` AND `total_payments < invoice_amount`
 
 ---
 
-# Possible Improvements
+## Possible Improvements
 
 Future improvements could include:
-
 - Scheduled background sync jobs
 - Authentication and authorization
 - Customer risk scoring
@@ -307,22 +350,31 @@ Future improvements could include:
 
 ---
 
-# Demo Flow
+## Demo Flow
 
-1. Start the server
-2. Sync external data
-3. Query financial insights
-
-Example:
-
-```
-/sync
-/customers/1/balance
-/invoices/overdue
-```
+1. Start the mock external API:
+   ```bash
+   python mock_external_api.py
+   ```
+2. Start the main app:
+   ```bash
+   python run.py
+   ```
+3. Sync external data:
+   ```http
+   GET /sync
+   ```
+4. Query financial insights:
+   ```http
+   GET /customers/1/balance
+   ```
+   ```http
+   GET /invoices/overdue
+   ```
 
 ---
 
-# Author
+## Author
 
-Surya Verma
+Surya Verma  
+GitHub: https://github.com/00surya
