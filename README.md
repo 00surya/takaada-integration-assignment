@@ -195,7 +195,7 @@ The main app `/sync` endpoint pulls data from this mock server and stores it in 
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/00surya/takaada-integration-assignment.git
-cd takaada-assignment
+cd takaada-integration-assignment
 ```
 ### 2. Create a virtual environment
 ```bash
